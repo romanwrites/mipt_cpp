@@ -35,7 +35,6 @@ int		main()
 	string	speed;
 	string	num;
 	int		money = 0;
-	//три совпадают − 1000 у.е., две любые цифры совпадают − 500 у.е., все цифры разные − 100 у.е.
 	getline(cin, driver);
 	speed = driver.substr(0, driver.find(" "));
 	num = driver.substr(driver.find(" ") + 1, 6);
