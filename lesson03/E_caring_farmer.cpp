@@ -1,74 +1,70 @@
 #include <iostream>
 
-/*  */
+using namespace std;
 
-// int		find_best(int *z, int *l, int best, int k, int n)
-// {
-// 	if (z[n] == l[k] && z[n - 1] == l[k - 1] && z[n - 2] == l[k - 2])
-// 		return (best);
-// 	int	new_best;
-// 	int i = 0;
-// 	new_best = l[i] - l[i + 1];
-// 	while (l[i + 1] != 0)
-// 	{
-// 		if (new_best > l[i] - l[i + 1])
-// 			new_best = l[i] - l[i + 1];
-// 		i++;
-// 	}
-// 	return (0);
-// }
-
-
-
-// int     comb(int a = 0, int b = 1, int c = 2)
-// {
-//         std::cout << a << " " << b << " " << c << '\n';
-
-//         if (c % 6 != 0)
-//             return comb(a, b, c + 1);
-//         else if (c % 6 == 0 && b % 5 != 0)
-//             return comb(a, b + 1, b + 2);
-//         else if (c % 6 == 0 && b % 5 == 0 && (a % 4 != 0 || a == 0))
-//             return comb(a + 1, a + 2, a + 3);
-//         else
-//             return 0;
-// }
-
-bool	isLastComb(int *z, const int *dubl, int *l, int n, int k)
+class Horses
 {
-	while (k > -1)
+public:
+	int	num;
+	int value;
+	int current_pos;
+	int desired_pos;
+};
+
+bool	isLastComb(int *z, Horses l[], int n, int k)
+{
+	while (k-- >= 0)
 	{
-		if (dubl[n - 1] != k - 1)
+		if (l[k].current_pos != l[k].desired_pos)
+		{
+			setNewIter();
 			return (false);
+		}
 		k--;
-		n--;
 	}
 	return (true);
 }
 
-void	print_arr(int *dubl, int n)
+
+void	printArr(int arr[], int n)
 {
 	for (int j = 0; j<n; ++j)
 	{
-		if (dubl[j] == -1)
+		if (arr[j] == -1)
 			std::cout << 'X' << " ";
 		else
-			std::cout << dubl[j] << " ";
+			std::cout << arr[j] << " ";
 	}
 	std::cout << std::endl;
+}
+
+bool	setNewIter(int *z, Horses l[], int n, int k)
+{
+
+// [0][-1][1][-1][-1][2]
+
+
+	/*
+	 * возьми следующий элемент
+	 * он на своём месте?
+	 * нет
+	 * переставь его на 1 вперёд
+	 * возьми предыдущий элемент
+	 * переставь его на 1 перед следующим
+	 * пока не дойдёшь до k-1 повторяй
+	 */
 }
 
 int		main()
 {
 	int n, k;
 	int		i = 0;
-	int		*z, *l, *dubl;
 
 	std::cin >> n;
 	std::cin >> k;
-	z = (int *)malloc(sizeof(int) * (n));
-	l = (int *)malloc(sizeof(int) * (k));
-	dubl = (int *)malloc(sizeof(int) * (n));
+	int z[n];
+	Horses l[k];
+
 	while (i < n)
 	{
 		std::cin >> z[i];
@@ -77,32 +73,50 @@ int		main()
 	i = 0;
 	while (i < k)
 	{
-		l[i] = z[i];
+		l[i].current_pos = i;
+		l[i].num = i;
+		l[i].value = z[i];
+		l[i].desired_pos = i + n - k;
 		i++;
 	}
 	i = 0;
-	while (i < n)
+	printArr(z, n);
+	int elem = k-1; // беру номер последней лошадки (2)
+	int pos_elem = elem; // беру текущую позицию лошадки (2) в массиве загонов и дублирующем массиве загонов
+	int diff = n - k; // считаю разницу между загонами и лошадьми чтобы итерироваться
+
+	// проверка на последнюю комбинацию, чтобы закончить цикл. Это когда все лошадки стоят на последних местах массива
+	// [-1][-1][-1][0][1][2]
+	while (!isLastComb(z, l, n, k))
 	{
-		if (i < k)
-			dubl[i] = i;
-		else
-			dubl[i] = -1;
-		i++;
-	}
-	int elem = k-1;
-	int pos_elem = elem;
-	int diff = n - k;
-	print_arr(dubl, n);
-	while (!isLastComb(z, dubl, l, n, k))
-	{
-		while (dubl[elem + diff] != elem)
+		set_new_iter(z, l, n, k);
+		// [0][1][2][-1][-1][-1]
+		// [0][1][-1][2][-1][-1]
+		// [0][1][-1][-1][2][-1]
+		// [0][1][-1][-1][-1][2]
+		while (dubl[elem + diff] != elem) //идём пока лошадка (2) не дойдёт до конца
 		{
 			dubl[pos_elem++] = -1;
 			dubl[pos_elem] = elem;
 			l[elem] = z[pos_elem];
-			print_arr(dubl, n);
+			printArr(z, n);
 		}
-		break;
+		// как перейти теперь к следующей комбинации?
+		// [0][-1][1][2][-1][-1]
+
+		/*
+		 * возьми следующий элемент
+		 * он на своём месте?
+		 * нет
+		 * переставь его на 1 вперёд
+		 * возьми предыдущий элемент
+		 * переставь его на 1 перед следующим
+		 * пока не дойдёшь до k-1 повторяй
+		 */
+	}
+
+
+
 //		if (isLastComb(z, dubl, l, n, k))
 //			break ;
 //		if (elem > 0)
@@ -124,7 +138,9 @@ int		main()
 
 //		count_best();
 //		set_new_iter();
-	}
+
+
+
 	// std::cout << find_best(z, l, best, k, n);
 	free(z);
 	free(dubl);
