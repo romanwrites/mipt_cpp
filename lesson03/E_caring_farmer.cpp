@@ -1,5 +1,19 @@
 #include <iostream>
 
+/* This program reads n > 2 of stalls and 1 < k < n horses.
+ * Every stall has a coordinate > 0.
+ * At one stall could be assigned only one horse.
+ * The goal is to spread horses in stalls to get
+ * max possible average range between horses.
+ * This is a slow solution.
+ * Program checks all possible combinations and gets value.
+ * Binomial coefficient.
+ *
+ * input example:	6 3
+ * 					2 5 7 11 15 20
+ *
+ * output example:	9 */
+
 using namespace std;
 
 class Horses
@@ -11,16 +25,60 @@ public:
 	int desired_pos;
 };
 
-bool	isLastComb(int *z, Horses l[], int n, int k)
+int 	minArrElem(const int arr[], int len)
 {
-	while (k-- >= 0)
+	int tmp;
+
+	tmp = arr[--len];
+	while (len--)
 	{
-		if (l[k].current_pos != l[k].desired_pos)
+		if (arr[len] < tmp)
+			tmp = arr[len];
+	}
+	return (tmp);
+}
+
+int		getBest(Horses l[], int k, int best)
+{
+	int tmp = 0;
+	int vals[k - 1];
+
+	int i = k - 2;
+	int k2 = k - 1;
+
+	while (i >= 0)
+	{
+		vals[i] = l[k2].value - l[k2 - 1].value;
+		k2--;
+		i--;
+	}
+	tmp = minArrElem(vals, sizeof(vals)/sizeof(int));
+	if (tmp > best)
+		return (tmp);
+	return (best);
+
+}
+
+bool	isLastComb(const int z[], Horses l[], int n, int k)
+{
+	int	i = k - 1;
+
+	while (i >= 0)
+	{
+		if (l[i].current_pos != l[i].desired_pos)
 		{
-			setNewIter();
+			l[i].current_pos += 1;
+			l[i].value = z[l[i].current_pos];
+			i++;
+			while (i < k)
+			{
+				l[i].current_pos = l[i - 1].current_pos + 1;
+				l[i].value = z[l[i].current_pos];
+				i++;
+			}
 			return (false);
 		}
-		k--;
+		i--;
 	}
 	return (true);
 }
@@ -38,27 +96,36 @@ void	printArr(int arr[], int n)
 	std::cout << std::endl;
 }
 
-bool	setNewIter(int *z, Horses l[], int n, int k)
+int		isHorsePos(Horses l[], int i, int k)
 {
-
-// [0][-1][1][-1][-1][2]
-
-
-	/*
-	 * возьми следующий элемент
-	 * он на своём месте?
-	 * нет
-	 * переставь его на 1 вперёд
-	 * возьми предыдущий элемент
-	 * переставь его на 1 перед следующим
-	 * пока не дойдёшь до k-1 повторяй
-	 */
+	while (k--)
+	{
+		if (l[k].current_pos == i)
+			return (l[k].num);
+	}
+	return (-1);
 }
 
-int		main()
+void	printHorses(Horses l[], int n, int k)
 {
+	int i = 0;
+	int num;
+
+	while (n > 0)
+	{
+		if ((num = isHorsePos(l, i, k)) != -1)
+			cout << "[" << num << "]";
+		else
+			cout << "[.]";
+		i++;
+		n--;
+	}
+	cout << endl;
+}
+
+int		main() {
 	int n, k;
-	int		i = 0;
+	int i = 0;
 
 	std::cin >> n;
 	std::cin >> k;
@@ -71,8 +138,8 @@ int		main()
 		i++;
 	}
 	i = 0;
-	while (i < k)
-	{
+
+	while (i < k) {
 		l[i].current_pos = i;
 		l[i].num = i;
 		l[i].value = z[i];
@@ -80,167 +147,26 @@ int		main()
 		i++;
 	}
 	i = 0;
-	printArr(z, n);
-	int elem = k-1; // беру номер последней лошадки (2)
-	int pos_elem = elem; // беру текущую позицию лошадки (2) в массиве загонов и дублирующем массиве загонов
-	int diff = n - k; // считаю разницу между загонами и лошадьми чтобы итерироваться
+	int best = 0;
 
-	// проверка на последнюю комбинацию, чтобы закончить цикл. Это когда все лошадки стоят на последних местах массива
-	// [-1][-1][-1][0][1][2]
+	i = k;
+	best = getBest(l, k, best);
 	while (!isLastComb(z, l, n, k))
 	{
-		set_new_iter(z, l, n, k);
-		// [0][1][2][-1][-1][-1]
-		// [0][1][-1][2][-1][-1]
-		// [0][1][-1][-1][2][-1]
-		// [0][1][-1][-1][-1][2]
-		while (dubl[elem + diff] != elem) //идём пока лошадка (2) не дойдёт до конца
-		{
-			dubl[pos_elem++] = -1;
-			dubl[pos_elem] = elem;
-			l[elem] = z[pos_elem];
-			printArr(z, n);
-		}
-		// как перейти теперь к следующей комбинации?
-		// [0][-1][1][2][-1][-1]
-
 		/*
-		 * возьми следующий элемент
-		 * он на своём месте?
-		 * нет
-		 * переставь его на 1 вперёд
-		 * возьми предыдущий элемент
-		 * переставь его на 1 перед следующим
-		 * пока не дойдёшь до k-1 повторяй
+		iterate...
+		[0][1][2][-1][-1][-1]
+		[0][1][-1][2][-1][-1]
+		[0][1][-1][-1][2][-1]
+		[0][1][-1][-1][-1][2]
 		 */
+		best = getBest(l, k, best);
+		while (l[k - 1].current_pos != l[k - 1].desired_pos) {
+			l[k - 1].current_pos += 1;
+			l[k - 1].value = z[l[k - 1].current_pos];
+			best = getBest(l, k, best);
+		}
 	}
-
-
-
-//		if (isLastComb(z, dubl, l, n, k))
-//			break ;
-//		if (elem > 0)
-//			elem--;
-//		while (elem > 0)
-//		{
-//			if (!isRightPlace(z, dubl, l, n, k, elem))
-//			{
-//				dubl[pos_elem++] = -1;
-//				dubl[pos_elem] = elem;
-//				while (elem < k)
-//				{
-//					elem <
-//					elem++;
-//				}
-//			}
-//
-//		}
-
-//		count_best();
-//		set_new_iter();
-
-
-
-	// std::cout << find_best(z, l, best, k, n);
-	free(z);
-	free(dubl);
-	free(l);
+	cout << best;
 	return (0);
 }
-/*
- * 	6 3
-	2 5 7 11 15 20
- */
-//рекурсивно подставлять и высчитывать максимальное
-//передавать максимальное в функцию подстановки, если могу подставить иначе — подставлять и смотреть меньше или больше
-// если меньше, подставлять иначе, пока не достигну 0
-// колич
-/*
-идея создать дублирующий массив
-подставлять туда номера лошадей
-они уже пронумерованы индексами
-
-2 1
-2 2
-3 3
-1 1
-[2][40][41][60][61][62]
-
-[X][X][X][o][o][o]
-[X][X][o][X][o][o]
-[X][X][o][o][X][o]
-[X][X][o][o][o][X]
-
-[X][o][X][X][o][o]
-[X][o][X][o][X][o]
-[X][o][X][o][o][X]
-
-[X][o][o][X][X][o]
-[X][o][o][X][o][X]
-
-[X][o][o][o][X][X]
-
-[o][X][X][X][o][o]
-[o][X][X][o][X][o]
-[o][X][X][o][o][X]
-
-[o][X][o][X][X][o]
-[o][X][o][X][o][X]
-
-[o][X][o][o][X][X]
-
-[o][o][X][X][X][o]
-[o][o][X][X][o][X]
-
-[o][o][X][o][X][X]
-
-[o][o][o][X][X][X]
-
-
-
-
-
-[X][X][X][o][o][o]
-[X][X][o][X][o][o]
-[X][X][o][o][X][o]
-[X][X][o][o][o][X]
-[X][o][X][X][o][o]
-[X][o][X][o][X][o]
-[X][o][X][o][o][X]
-[X][o][o][X][X][o]
-[X][o][o][X][o][X]
-[X][o][o][o][X][X]
-[o][X][X][X][o][o]
-[o][X][X][o][X][o]
-[o][X][X][o][o][X]
-[o][X][o][X][X][o]
-[o][X][o][X][o][X]
-[o][X][o][o][X][X]
-[o][o][X][X][X][o]
-[o][o][X][X][o][X]
-[o][o][X][o][X][X]
-[o][o][o][X][X][X]
-
-
-
-
-
-
-
-[X][X][X][X][o][o]
-[X][X][X][o][X][o]
-[X][X][X][o][o][X]
-[X][X][o][X][X][o]
-[X][X][o][X][o][X]
-[X][X][o][o][X][X]
-[X][o][X][X][X][o]
-[X][o][X][X][o][X]
-[X][o][X][o][X][X]
-[X][o][o][X][X][X]
-[o][X][X][X][X][o]
-[o][X][X][X][o][X]
-[o][X][X][o][X][X]
-[o][X][o][X][X][X]
-[o][o][X][X][X][X]
-
-*/
